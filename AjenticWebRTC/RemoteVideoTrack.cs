@@ -31,7 +31,9 @@ public sealed class RemoteVideoTrack : IDisposable
         _trackHandle = trackHandle;
         _logger = logger ?? NullWebRtcLogger.Instance;
         _workQueue = workQueue;
-        _callback = OnI420AFrame;
+        // I420AFrameReadyCallback is an unsafe delegate type, so the assignment
+        // must occur inside an unsafe context even though OnI420AFrame is itself unsafe.
+        unsafe { _callback = OnI420AFrame; }
         _callbackHandle = GCHandle.Alloc(_callback);
         NativeMethods.mrsRemoteVideoTrackRegisterI420AFrameCallback(_trackHandle, _callback, IntPtr.Zero);
         _logger.LogDebug("RemoteVideoTrack registered I420A callback for handle {Handle}", _trackHandle);
